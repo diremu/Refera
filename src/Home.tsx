@@ -1,8 +1,9 @@
-import { Search } from './Search.jsx'
+import Navbar from './components/Navbar'
 
 function Home() {
   return (
     <div>
+      <Navbar />
       <div className='flex flex-col justify-center space-x-2'>
         <svg
           width="50"
@@ -19,13 +20,12 @@ function Home() {
             stroke-linejoin="round"
           />
         </svg>
-        <h1 className="text-xl font-bold">
+        <h1 className="text-xl font-bold font-newsreader">
           Refera: All your favorite lines one search away
         </h1>
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-gray-600 font-jbmono">
           Discover and save your favorite quotes, lines, and phrases in one place.
         </p>
-        <Search />
       </div>
     </div>
   );
