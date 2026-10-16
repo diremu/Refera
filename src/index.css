@@ -15,6 +15,7 @@
 
 body {
   margin: 0;
+  background-color: #f8f9ff;
 }
 
 #root {
@@ -60,4 +61,15 @@ h1 {
   font-family: "Hanken Grotesk";
   font-style: normal;
   font-weight: 400;
+}
+
+.options {
+  appearance: base-select;
+}
+
+::picker(select) {
+  appearance: base-select;
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin:12px -10px;
 }
