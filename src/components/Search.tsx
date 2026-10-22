@@ -1,5 +1,5 @@
 import { IoSearchOutline } from "react-icons/io5";
-import { GrFormNextLink } from "react-icons/gr";
+import { FaArrowRight } from "react-icons/fa";
 import { useState } from "react";
 import Result from "./Result";
 
@@ -33,7 +33,7 @@ function Search() {
             className="rounded-md text-white bg-[#0f172a] flex items-center py-3 px-4 font-grotesk ml-auto"
             type="submit"
           >
-            Search <GrFormNextLink className="mx-2" />
+            Search <FaArrowRight className="mx-2" />
           </button>
         </div>
         <div className="flex justify-around w-[70vw] max-w-175 flex-wrap mx-auto font-grotesk">
@@ -71,7 +71,11 @@ function Search() {
             <label htmlFor="discipline" className="text-gray-400 mr-4">
               Discipline:
             </label>
-            <select id="discipline" value="All" className="focus:border-none options">
+            <select
+              id="discipline"
+              value="All"
+              className="focus:border-none options"
+            >
               <option>All</option>
               <option>Computer Science</option>
               <option>Medicine</option>
@@ -81,24 +85,41 @@ function Search() {
         </div>
       </form>
       <div>
-        <div id="controls" className="flex justify-between w-200 max-w-[70vw] mx-auto font-grotesk mt-6 mb-4 border-b border-b-gray-200">
+        <div
+          id="controls"
+          className="flex justify-between w-200 max-w-[70vw] mx-auto font-grotesk mt-6 mb-4 border-b border-b-gray-200"
+        >
           <p className="">142 passsages found in 40 papers</p>
           <span>
             <label htmlFor="sortBy" className=" text-gray-400 text-sm mr-4">
               Sort by:
             </label>
-            <select id="sortBy" value="Relevance" className="text-sm focus:border-none options">
+            <select
+              id="sortBy"
+              value="Relevance"
+              className="text-sm focus:border-none options"
+            >
               <option>Most Recent</option>
               <option>Most Cited</option>
               <option>Relevance</option>
             </select>
           </span>
         </div>
-        <div>
-          <div id="results" className='flex flex-col items-center'>
-            <Result />
+        <div id="results" className="flex flex-col gap-4 mb-4 items-center">
+          <Result />
+          <Result />
+        </div>
+        <div id='pagination' className="flex justify-between align-center w-200 max-w-[70vw] mx-auto font-grotesk text-gray-500 text-sm mt-2 mb-6">
+          <p>Showing 1-5 of 85 results</p>
+          <div className="flex gap-2">
+            <button disabled className="min-w-10 p-2 border text-gray-300 border-gray-200 rounded-md">Prev</button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md bg-black text-white">1</button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md">2</button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md">3</button>
+            <span className="p-2">...</span>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md">10</button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md">Next</button>
           </div>
-          <div id="workbench"></div>
         </div>
       </div>
     </div>

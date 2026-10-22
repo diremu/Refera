@@ -1,16 +1,22 @@
 @font-face {
-  font-family: "Newsreader", Arial, sans-serif;
-  src: "url(../public/fonts/Newsreader-VariableFont_opsz,wght.ttf)";
+  font-family: "Newsreader";
+  src: url("/fonts/Newsreader-VariableFont_opsz,wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
 }
 
 @font-face {
   font-family: "Hanken Grotesk";
-  src: "url(../public/fonts/HankenGrotesk-VariableFont_wght.ttf)";
+  src: url("/fonts/HankenGrotesk-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
 }
 
 @font-face {
-  font-family: "JetBrains Mono", monospace;
-  src: "url(../public/fonts/JetBrainsMono-VariableFont_wght.ttf)";
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
 }
 
 body {
@@ -51,7 +57,7 @@ h1 {
 }
 
 .font-jbmono {
-  font-family: "JetBrains Mono", monospace;
+  font-family: 'JetBrains Mono';
   font-optical-sizing: auto;
   font-style: normal;
   font-weight: 400;
@@ -61,6 +67,7 @@ h1 {
   font-family: "Hanken Grotesk";
   font-style: normal;
   font-weight: 400;
+  font-optical-sizing: auto;
 }
 
 .options {

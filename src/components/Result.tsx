@@ -2,20 +2,28 @@ import { CiBookmark } from "react-icons/ci";
 import { IoBookmark } from "react-icons/io5";
 import { GoCopy } from "react-icons/go";
 import { FaArrowRight } from "react-icons/fa";
+import { useState } from "react";
 
 function Result() {
+    const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   return (
-    <div className="w-200 max-w-[50vw] bg-white border-gray-200 border rounded-md p-4">
+    <div className="w-200 max-w-[70vw] bg-white border-gray-200 border rounded-md p-4">
       <div className="flex flex-col">
         <div className="flex justify-between items-center">
           <h3 className='text-xl font-newsreader'>Epistemic Injustice: Power and the Ethics of Knowing</h3>
-          <CiBookmark className="text-gray-500 hover:text-black " />
+          <button onClick={() => setIsBookmarked(!isBookmarked)}>
+            {isBookmarked ? (
+              <IoBookmark className="text-gray-500 hover:text-black " />
+            ) : (
+              <CiBookmark className="text-gray-500 hover:text-black " />
+            )}
+          </button>
         </div>
         <p className='text-sm flex gap-1.5 justify-start'>
           Miranda Fricker<span className="italic text-gray-500">Oxford University Press,</span><span className='text-gray-500'> 2007, p. 148</span>
         </p>
       </div>
-      <div className="my-4 ml-2 pl-2 border-l-2 border-solid border-yellow-500">
+      <div className="my-4 ml-2 pl-4 border-l-2 border-solid border-yellow-500">
         <p className="text-left">
           "Hermeneutical injustice occurs at a prior stage, when a speaker's
           attempt to make sense of a social experience is impeded by a lacuna in
@@ -26,7 +34,7 @@ function Result() {
           subject's ability to contribute meaningfully to communal
           meaning-making."
         </p>
-        <p className="text-sm font-jbmono text-gray-500 flex justify-start -ml-1">
+        <p className="text-sm font-jbmono text-gray-500 flex justify-start -ml-1 my-1">
           Chapter 7: Hermeneutical Injustice · § 7.2 The Structural Dimension
         </p>
       </div>
@@ -35,9 +43,9 @@ function Result() {
           <span className="flex items-center gap-1">
             Cite <GoCopy />
           </span>
-          <span className="flex items-center gap-2">
+          <a className="flex items-center gap-2 hover:text-black transition duration-300" href='#' target='_blank'>
             View in Context (p.148) <FaArrowRight />
-          </span>
+          </a>
         </div>
         <div className="flex gap-4 text-sm text-gray-500">
           <span>4,120 citations</span>
