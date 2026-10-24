@@ -7,15 +7,15 @@ import { useState } from "react";
 function Result() {
     const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   return (
-    <div className="w-200 max-w-[70vw] bg-white border-gray-200 border rounded-md p-4">
+    <div className="md:w-200 md:max-w-[70vw] w-[90vw] min-w-50  bg-white border-gray-200 border rounded-md p-4">
       <div className="flex flex-col">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <h3 className='text-xl font-newsreader'>Epistemic Injustice: Power and the Ethics of Knowing</h3>
           <button onClick={() => setIsBookmarked(!isBookmarked)}>
             {isBookmarked ? (
-              <IoBookmark className="text-gray-500 hover:text-black " />
+              <IoBookmark className="text-gray-500 hover:text-black mt-1 md:mt-0" />
             ) : (
-              <CiBookmark className="text-gray-500 hover:text-black " />
+              <CiBookmark className="text-gray-500 hover:text-black mt-1 md:mt-0" />
             )}
           </button>
         </div>
@@ -24,7 +24,7 @@ function Result() {
         </p>
       </div>
       <div className="my-4 ml-2 pl-4 border-l-2 border-solid border-yellow-500">
-        <p className="text-left">
+        <p className="text-left font-grotesk">
           "Hermeneutical injustice occurs at a prior stage, when a speaker's
           attempt to make sense of a social experience is impeded by a lacuna in
           collective hermeneutical resources—that is, a gap in available
@@ -34,7 +34,7 @@ function Result() {
           subject's ability to contribute meaningfully to communal
           meaning-making."
         </p>
-        <p className="text-sm font-jbmono text-gray-500 flex justify-start -ml-1 my-1">
+        <p className="text-sm font-jbmono text-gray-500 flex justify-start -ml-1 my-1 text-left">
           Chapter 7: Hermeneutical Injustice · § 7.2 The Structural Dimension
         </p>
       </div>
@@ -44,7 +44,7 @@ function Result() {
             Cite <GoCopy />
           </span>
           <a className="flex items-center gap-2 hover:text-black transition duration-300" href='#' target='_blank'>
-            View in Context (p.148) <FaArrowRight />
+            View in Context (p.148) <FaArrowRight className="hidden md:block"/>
           </a>
         </div>
         <div className="flex gap-4 text-sm text-gray-500">

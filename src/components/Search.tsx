@@ -20,7 +20,7 @@ function Search() {
         className="border-b-[1.5px] border-solid pb-10 border-b-gray-200 "
         onSubmit={onSubmit}
       >
-        <div className="px-2 py-2  m-4 shadow-md rounded-md w-200 mx-auto flex justify-start bg-white align-items-center border-[0.8px] border-gray-200">
+        <div className="px-2 py-2 m-4 shadow-md md:rounded-md rounded-xl  md:w-[70vw] w-[90vw] mx-auto flex justify-start bg-white align-items-center border-[0.8px] border-gray-200">
           <IoSearchOutline className="my-auto mx-2" />
           <input
             placeholder="One small step for man ..."
@@ -36,7 +36,7 @@ function Search() {
             Search <FaArrowRight className="mx-2" />
           </button>
         </div>
-        <div className="flex justify-around w-[70vw] max-w-175 flex-wrap mx-auto font-grotesk">
+        <div className="flex justify-around w-[70vw] max-w-175 flex-wrap gap-2 md:gap-0 mx-auto font-grotesk">
           <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border">
             <label htmlFor="year" className="text-gray-400 mr-4">
               Era:{" "}
@@ -87,9 +87,9 @@ function Search() {
       <div>
         <div
           id="controls"
-          className="flex justify-between w-200 max-w-[70vw] mx-auto font-grotesk mt-6 mb-4 border-b border-b-gray-200"
+          className="flex justify-between md:w-200 md:max-w-[70vw] w-[90vw] mx-auto font-grotesk mt-6 mb-4 border-b border-b-gray-200"
         >
-          <p className="">142 passsages found in 40 papers</p>
+          <p className="text-wrap">142 passsages found in 40 papers</p>
           <span>
             <label htmlFor="sortBy" className=" text-gray-400 text-sm mr-4">
               Sort by:
@@ -109,16 +109,34 @@ function Search() {
           <Result />
           <Result />
         </div>
-        <div id='pagination' className="flex justify-between align-center w-200 max-w-[70vw] mx-auto font-grotesk text-gray-500 text-sm mt-2 mb-6">
-          <p>Showing 1-5 of 85 results</p>
+        <div
+          id="pagination"
+          className="flex justify-between align-center md:w-200 md:max-w-[70vw] w-[90vw] mx-auto font-grotesk text-gray-500 text-xs mt-2 mb-6"
+        >
+          <p className="text-wrap text-xs">Showing 1-5 of 85 results</p>
           <div className="flex gap-2">
-            <button disabled className="min-w-10 p-2 border text-gray-300 border-gray-200 rounded-md">Prev</button>
-            <button className="min-w-10 p-2 border border-gray-200 rounded-md bg-black text-white">1</button>
-            <button className="min-w-10 p-2 border border-gray-200 rounded-md">2</button>
-            <button className="min-w-10 p-2 border border-gray-200 rounded-md">3</button>
+            <button
+              disabled
+              className="min-w-10 p-2 border text-gray-300 border-gray-200 rounded-md"
+            >
+              Prev
+            </button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md bg-black text-white">
+              1
+            </button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md">
+              2
+            </button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md">
+              3
+            </button>
             <span className="p-2">...</span>
-            <button className="min-w-10 p-2 border border-gray-200 rounded-md">10</button>
-            <button className="min-w-10 p-2 border border-gray-200 rounded-md">Next</button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md">
+              10
+            </button>
+            <button className="min-w-10 p-2 border border-gray-200 rounded-md">
+              Next
+            </button>
           </div>
         </div>
       </div>
