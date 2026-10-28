@@ -8,11 +8,26 @@ function Search() {
   const [prOnly, setPrOnly] = useState<boolean>(false);
   const [era, setEra] = useState<string>("All");
   const [discipline, setDiscipline] = useState<string>("All");
+  const [source, setSource] = useState<string>("All");
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = { searchStr, prOnly, era, discipline };
-    //then makes a post request to the backend and returna with new data
+    const form = {
+      searchStr,
+      prOnly,
+      era,
+      discipline,
+      source
+    }
+    //then makes a post request to the backend and returns with new data
+    let result = await fetch('http://localhost:3000/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(form)
+    })
+    result = await result.json()
   }
   return (
     <div>
@@ -36,8 +51,8 @@ function Search() {
             Search <FaArrowRight className="mx-2" />
           </button>
         </div>
-        <div className="flex justify-around w-[70vw] max-w-175 flex-wrap gap-2 md:gap-0 mx-auto font-grotesk">
-          <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border">
+        <div className="flex justify-around w-[80vw] max-w-175 flex-wrap gap-2 md:gap-0 mx-auto font-grotesk">
+          <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
             <label htmlFor="year" className="text-gray-400 mr-4">
               Era:{" "}
             </label>
@@ -53,13 +68,13 @@ function Search() {
               <option>1990 till 1999</option>
             </select>
           </div>
-          <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border">
+          <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
             <input
               type="checkbox"
               id="peer-review"
               className="text-black bg-black"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                console.log(e.target.value);
+                setPrOnly(e.target.checked)
               }}
             />
             {/* checkbox 'currently bugged and not storing properly */}
@@ -67,19 +82,36 @@ function Search() {
               Peer Reviewed Only
             </label>
           </div>
-          <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border">
+          <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
             <label htmlFor="discipline" className="text-gray-400 mr-4">
               Discipline:
             </label>
             <select
               id="discipline"
-              value="All"
+              value={discipline}
               className="focus:border-none options"
+              onChange={(e) => setDiscipline(e.target.value)}
             >
               <option>All</option>
               <option>Computer Science</option>
               <option>Medicine</option>
               <option>Law</option>
+            </select>
+          </div>
+          <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
+            <label htmlFor="source" className="text-gray-400 mr-4">
+              Source:
+            </label>
+            <select
+              id="source"
+              value={source}
+              className="focus:border-none options"
+              onChange={(e) => setSource(e.target.value)}
+            >
+              <option>All</option>
+              <option>Google Scholar</option>
+              <option>Bodleian Library</option>
+              <option>OpenAlex</option>
             </select>
           </div>
         </div>
