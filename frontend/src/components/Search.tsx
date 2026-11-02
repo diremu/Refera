@@ -29,7 +29,10 @@ function Search() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ searchStr, prOnly, era, discipline, source }),
       });
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error ?? `Request failed with a status code of ${res.status}`)
+      };
 
       const data = await res.json();
       const list = data.results ?? [];

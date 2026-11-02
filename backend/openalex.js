@@ -3,7 +3,7 @@ function rebuildAbstract(index) {
   const words = [];
   for (const [word, positions] of Object.entries(index)) {
     for (const p of positions) words[p] = word;
-  }
+   }
   return words.filter(Boolean).join(" ");
 }
 
@@ -47,8 +47,6 @@ export async function openAlexSearch({ searchStr, era, prOnly, page }) {
   });
   if (filters.length) params.set("filter", filters.join(","));
 
-  console.log("OpenAlex filter:", params.get("filter") ?? "none"); // don't log the full URL, it contains the key
-
   const res = await fetch(`${process.env.OPENALEX_API}/works?${params}`, {
     signal: AbortSignal.timeout(10000),
   });
@@ -64,7 +62,6 @@ export async function openAlexSearch({ searchStr, era, prOnly, page }) {
     const authors = (re.authorships ?? [])
       .map((a) => a.author?.display_name ?? a.raw_author_name)
       .filter(Boolean);
-
     const byline = authors.slice(0, 3).join(", ");
     const where = [venue, year].filter(Boolean).join(", ");
 
@@ -77,12 +74,10 @@ export async function openAlexSearch({ searchStr, era, prOnly, page }) {
       authors,
       summary: [byline, where].filter(Boolean).join(" - "),
       citedBy: re.cited_by_count ?? 0,
-
       date: re.publication_date ?? (year ? String(year) : null),
       yearStart: year,
       yearEnd: year,
       approximate: false,
-
       doi: re.doi?.replace("https://doi.org/", "") ?? null,
       type: re.type,
     };

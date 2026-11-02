@@ -4,19 +4,39 @@ import dotenv from 'dotenv'
 import { googleSearch } from './google.js'
 import bodleianSearch from './bodleian.js'
 import {openAlexSearch} from './openalex.js'
+import { makeKey, cached } from './cache.js'
+import rateLimit from 'express-rate-limit'
+
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many searches. Wait a minute and try again." },
+});
 
 dotenv.config()
 const app = express()
 app.use(cors())
 app.use(express.json())
 
-const adapters = {
-  'Google Scholar': googleSearch,
-  'Bodleian Library': bodleianSearch,
-  'OpenAlex': openAlexSearch
+let day = new Date().toDateString();
+let used = 0;
+const DAILY_CAP = Number(process.env.SERPAPI_DAILY_CAP ?? 30);
+
+function spendSerpCall() {
+  const today = new Date().toDateString();
+  if (today !== day) { day = today; used = 0; }
+  if (used >= DAILY_CAP) throw new Error("Google Scholar daily search limit reached");
+  used++;
 }
 
-app.post('/search', async (req, res) => {
+const adapters = {
+  "Google Scholar": (form) => { spendSerpCall(); return googleSearch(form); },
+  "Bodleian Library": bodleianSearch,
+  "OpenAlex": openAlexSearch,
+};
+app.post('/search', searchLimiter, async (req, res) => {
   const form = req.body
 
   if (!form.searchStr?.trim()) {
@@ -26,7 +46,7 @@ app.post('/search', async (req, res) => {
   const selected = adapters[form.source] ? [form.source] : Object.keys(adapters)
 
   const settled = await Promise.allSettled(
-    selected.map(name => adapters[name](form))
+    selected.map(name => cached(makeKey(name, form), () => adapters[name](form)))
   )
 
   const results = settled
