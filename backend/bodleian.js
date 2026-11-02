@@ -41,7 +41,14 @@ export function parseBodleianDate(raw) {
 
 async function bodleianSearch(formData) {
   let searchStr = new URLSearchParams({ q: formData.searchStr.trim() });
-  const res = await fetch(`${process.env.BODLEIAN_API}/search/?${searchStr}`, {
+  let era = formData.era
+  let queryString = `${process.env.BODLEIAN_API}/search/?${searchStr}`
+  if (era && era !== 'All') {
+    let [startYear, endYear] = era.split('-')
+    queryString += `&fq=date:[${startYear} TO ${endYear === 'date' ? new Date().getFullYear() : endYear}]`
+    console.log(queryString)
+  }
+  const res = await fetch(queryString, {
     headers: { Accept: "application/json" },
   });
   const data = await res.json();
@@ -50,12 +57,17 @@ async function bodleianSearch(formData) {
       `Bodleian request failed with a status code of ${res.status}`,
     );
   }
+    console.log(queryString)
+  console.log("totalItems:", data.totalItems, "| parsed query:", JSON.stringify(data.query));
   const contentType = res.headers.get("Content-Type") ?? " "
   if (!contentType.includes("json")) {
     console.log("Body Preview: ", body.slice(0, 300));
     throw new Error("Bodleian API returned wrong format");
   }
   if (!Array.isArray(data.member)) {
+    if (data.totalItems === 0) {
+      return []
+    }
   throw new Error(`Unexpected Bodleian response shape: keys = ${Object.keys(data)}`);
   }
   const results = data.member ?? [];

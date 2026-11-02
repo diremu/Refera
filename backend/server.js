@@ -3,6 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import { googleSearch } from './google.js'
 import bodleianSearch from './bodleian.js'
+import {openAlexSearch} from './openalex.js'
 
 dotenv.config()
 const app = express()
@@ -12,6 +13,7 @@ app.use(express.json())
 const adapters = {
   'Google Scholar': googleSearch,
   'Bodleian Library': bodleianSearch,
+  'OpenAlex': openAlexSearch
 }
 
 app.post('/search', async (req, res) => {

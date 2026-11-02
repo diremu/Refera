@@ -1,7 +1,9 @@
 import { IoSearchOutline } from "react-icons/io5";
 import { FaArrowRight } from "react-icons/fa";
 import { useState } from "react";
-import Result from "./Result";
+import { Result, ResultObject } from "./Result";
+import { FaSpinner } from "react-icons/fa6";
+// import { VscErrorSmall } from "react-icons/vsc";
 
 function Search() {
   const [searchStr, setSearchStr] = useState<string>("");
@@ -9,25 +11,42 @@ function Search() {
   const [era, setEra] = useState<string>("All");
   const [discipline, setDiscipline] = useState<string>("All");
   const [source, setSource] = useState<string>("All");
+  const [error, setError] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"relevance" | "citations" | "recency">(
+    "relevance",
+  );
+  const [searchResults, setSearchResults] = useState<ResultObject[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = {
-      searchStr,
-      prOnly,
-      era,
-      discipline,
-      source
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`http://localhost:3000/search`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ searchStr, prOnly, era, discipline, source }),
+      });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+
+      const data = await res.json();
+      const list = data.results ?? [];
+      setSearchResults(list);
+
+      const messages: string[] = (data.errors ?? []).map(
+        (er: { source: string; message: string }) =>
+          `${er.source}: ${er.message}`,
+      );
+      if (list.length === 0) messages.unshift("No results. Try another query.");
+      setError(messages.join("\n"));
+    } catch (err) {
+      setSearchResults([]);
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
     }
-    //then makes a post request to the backend and returns with new data
-    let result = await fetch('http://localhost:3000/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(form)
-    })
-    result = await result.json()
   }
   return (
     <div>
@@ -60,12 +79,15 @@ function Search() {
               id="year"
               className="focus:border-none options"
               onChange={(e) => setEra(e.target.value)}
+              value={era}
             >
-              <option selected={true}>All</option>
-              <option>2020 till date</option>
-              <option>2010 till 2019</option>
-              <option>2000 till 2009</option>
-              <option>1990 till 1999</option>
+              <option>All</option>
+              <option>2020 - date</option>
+              <option>2010 - 2019</option>
+              <option>2000 - 2009</option>
+              <option>1990 - 1999</option>
+              <option>600 - 1699</option>
+
             </select>
           </div>
           <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
@@ -74,7 +96,7 @@ function Search() {
               id="peer-review"
               className="text-black bg-black"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setPrOnly(e.target.checked)
+                setPrOnly(e.target.checked);
               }}
             />
             {/* checkbox 'currently bugged and not storing properly */}
@@ -121,25 +143,38 @@ function Search() {
           id="controls"
           className="flex justify-between md:w-200 md:max-w-[70vw] w-[90vw] mx-auto font-grotesk mt-6 mb-4 border-b border-b-gray-200"
         >
-          <p className="text-wrap">142 passsages found in 40 papers</p>
+          <p className="text-wrap">
+            {searchResults.length} findings found across{" "}
+            {source == "All" ? "all sources" : `the  ${source}`}
+          </p>
           <span>
             <label htmlFor="sortBy" className=" text-gray-400 text-sm mr-4">
               Sort by:
             </label>
             <select
               id="sortBy"
-              value="Relevance"
+              value={sortBy}
               className="text-sm focus:border-none options"
+              onChange={(e) =>
+                setSortBy(
+                  e.target.value as "relevance" | "citations" | "recency",
+                )
+              }
             >
-              <option>Most Recent</option>
-              <option>Most Cited</option>
-              <option>Relevance</option>
+              <option value="relevance">Relevance</option>
+              <option value="citations">Most Cited</option>
+              <option value="recency">Most Recent</option>
             </select>
           </span>
         </div>
         <div id="results" className="flex flex-col gap-4 mb-4 items-center">
-          <Result />
-          <Result />
+          {loading ? <FaSpinner className="text-2xl animate-spin" /> : null}
+          {}
+          {searchResults
+            ? searchResults.map((re: ResultObject, index: number) => (
+                <Result key={index} {...re} />
+              ))
+            : null}
         </div>
         <div
           id="pagination"

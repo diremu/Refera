@@ -17,13 +17,25 @@ function extractYear(summary) {
   return null;
 }
 
-export async function googleSearch({ searchStr }) {
-  const data = await getJson({
-    engine: "google_scholar",
-    q: searchStr.trim(),
-    hl: "en",
-    api_key: process.env.SERPAPI_KEY,
-  });
+export async function googleSearch({ searchStr, era, discipline, prOnly }) {
+  let data;
+  if (era && era !== "All") {
+    data = await getJson({
+      engine: "google_scholar",
+      q: searchStr.trim(),
+      hl: "en",
+      api_key: process.env.SERPAPI_KEY,
+    });
+  } else {
+    data = await getJson({
+      engine: "google_scholar",
+      q:searchStr.trim(),
+      hl: 'en',
+      api_key: process.env.SERPAPI_KEY,
+      as_ylo:era.split('-')[0],
+      as_yhi:era.split('-')[1],
+    })
+  }
 
   return (data.organic_results ?? []).map((r) => {
     const year = extractYear(r.publication_info?.summary);

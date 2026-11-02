@@ -4,13 +4,30 @@ import { GoCopy } from "react-icons/go";
 import { FaArrowRight } from "react-icons/fa";
 import { useState } from "react";
 
-function Result() {
-    const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+export interface ResultObject {
+  id: string,
+  source: string, 
+  title: string, 
+  url: string, 
+  snippet: string, 
+  authors: string[], 
+  summary: string, 
+  citedBy?: number, 
+  date: {
+    date: string | null,
+    yearStart: number | null,
+    yearEnd: number | null,
+    approximate: boolean
+  }
+}
+
+function Result(data: ResultObject) {
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   return (
     <div className="md:w-200 md:max-w-[70vw] w-[90vw] min-w-50  bg-white border-gray-200 border rounded-md p-4">
       <div className="flex flex-col">
         <div className="flex justify-between items-start">
-          <h3 className='text-xl font-newsreader'>Epistemic Injustice: Power and the Ethics of Knowing</h3>
+          <h3 className='text-xl font-newsreader'>{data.title}</h3>
           <button onClick={() => setIsBookmarked(!isBookmarked)}>
             {isBookmarked ? (
               <IoBookmark className="text-gray-500 hover:text-black mt-1 md:mt-0" />
@@ -20,22 +37,15 @@ function Result() {
           </button>
         </div>
         <p className='text-sm flex gap-1.5 justify-start'>
-          Miranda Fricker<span className="italic text-gray-500">Oxford University Press,</span><span className='text-gray-500'> 2007, p. 148</span>
+          {/* {data.authors.length > 1 ? data.authors.join(", ") : data.authors[0]}<span className="italic text-gray-500">{data.source},</span><span className='text-gray-500'>{data.date.date}, {data.citedBy ?? ""}</span> */}
         </p>
       </div>
       <div className="my-4 ml-2 pl-4 border-l-2 border-solid border-yellow-500">
         <p className="text-left font-grotesk">
-          "Hermeneutical injustice occurs at a prior stage, when a speaker's
-          attempt to make sense of a social experience is impeded by a lacuna in
-          collective hermeneutical resources—that is, a gap in available
-          understanding that leaves their experience obscure both to themselves
-          and to others. When this occurs as a result of structural prejudice,
-          we witness hermeneutical marginalization, which unjustly impairs the
-          subject's ability to contribute meaningfully to communal
-          meaning-making."
+          "{data.snippet}"
         </p>
         <p className="text-sm font-jbmono text-gray-500 flex justify-start -ml-1 my-1 text-left">
-          Chapter 7: Hermeneutical Injustice · § 7.2 The Structural Dimension
+          {data.summary}
         </p>
       </div>
       <div className="flex justify-between items-center">
@@ -43,17 +53,13 @@ function Result() {
           <span className="flex items-center gap-1">
             Cite <GoCopy />
           </span>
-          <a className="flex items-center gap-2 hover:text-black transition duration-300" href='#' target='_blank'>
-            View in Context (p.148) <FaArrowRight className="hidden md:block"/>
+          <a className="flex items-center gap-2 hover:text-black transition duration-300" href={`${data.url}`} target='_blank'>
+            View (p.148) <FaArrowRight className="hidden md:block"/>
           </a>
-        </div>
-        <div className="flex gap-4 text-sm text-gray-500">
-          <span>4,120 citations</span>
-          <span>12 chapters</span>
         </div>
       </div>
     </div>
   );
 }
 
-export default Result;
+export { Result };
