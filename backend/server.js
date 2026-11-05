@@ -13,6 +13,7 @@ const searchLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many searches. Wait a minute and try again." },
+  skipFailedRequests: true
 });
 
 dotenv.config()

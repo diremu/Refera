@@ -3,12 +3,14 @@ import { FaArrowRight } from "react-icons/fa";
 import { useState } from "react";
 import { Result, ResultObject } from "./Result";
 import { FaSpinner } from "react-icons/fa6";
-// import { VscErrorSmall } from "react-icons/vsc";
+import RangeYearSlider from './RangeYearSlider'
+
+const currentYear = new Date().getFullYear()
+const minYear = 1500
 
 function Search() {
   const [searchStr, setSearchStr] = useState<string>("");
   const [prOnly, setPrOnly] = useState<boolean>(false);
-  const [era, setEra] = useState<string>("All");
   const [discipline, setDiscipline] = useState<string>("All");
   const [source, setSource] = useState<string>("All");
   const [error, setError] = useState<string>("");
@@ -17,6 +19,15 @@ function Search() {
   );
   const [searchResults, setSearchResults] = useState<ResultObject[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [range, setRange] = useState<[number, number]>([minYear, currentYear])
+  const [allEras, setAllEras] = useState<boolean>(true)
+  const [eraOpen, setEraOpen] = useState<boolean>(false)
+
+  const era = allEras
+  ? "All"
+  : range[1] === currentYear
+    ? `${range[0]}-date`
+    : `${range[0]}-${range[1]}`;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,6 +62,8 @@ function Search() {
       setLoading(false);
     }
   }
+
+
   return (
     <div>
       <form
@@ -74,25 +87,42 @@ function Search() {
           </button>
         </div>
         <div className="flex justify-around w-[80vw] max-w-175 flex-wrap gap-2 md:gap-0 mx-auto font-grotesk">
-          <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
-            <label htmlFor="year" className="text-gray-400 mr-4">
-              Era:{" "}
-            </label>
-            <select
-              id="year"
-              className="focus:border-none options"
-              onChange={(e) => setEra(e.target.value)}
-              value={era}
-            >
-              <option>All</option>
-              <option>2020 - date</option>
-              <option>2010 - 2019</option>
-              <option>2000 - 2009</option>
-              <option>1990 - 1999</option>
-              <option>600 - 1699</option>
+          <div className="relative mt-4">
+  <button
+    type="button"   // important: buttons inside a form submit it by default
+    onClick={() => setEraOpen((o) => !o)}
+    className="bg-white px-4 py-1 rounded-3xl border-gray-300 border"
+  >
+    <span className="text-gray-400 mr-2">Era:</span>
+    {allEras ? "All eras" : `${range[0]} – ${range[1] === currentYear ? "Now" : range[1]}`}
+  </button>
 
-            </select>
-          </div>
+  {eraOpen && (
+    <div className="absolute left-1/2 top-11 z-20 w-64 -translate-x-1/2 rounded-xl border border-gray-200 bg-white shadow-md">
+      <RangeYearSlider
+        min={minYear}
+        max={currentYear}
+        value={range}
+        onChange={(v) => {
+          setRange(v);
+          setAllEras(false);
+        }}
+      />
+      <div className="mt-3 flex min-h-10 items-center justify-center rounded-b-xl bg-[#f8f9ff]">
+        <input
+          type="checkbox"
+          id="allEra"
+          checked={allEras}
+          onChange={(e) => {
+            setAllEras(e.target.checked)
+            setRange([minYear, currentYear])
+          }}
+        />
+        <label htmlFor="allEra" className="pl-2">All Eras</label>
+      </div>
+    </div>
+  )}
+</div>
           <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
             <input
               type="checkbox"

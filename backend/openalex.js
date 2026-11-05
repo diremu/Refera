@@ -1,3 +1,5 @@
+import {disciplines} from './disciplines.js'
+
 function rebuildAbstract(index) {
   if (!index) return "";
   const words = [];
@@ -22,7 +24,7 @@ function parseEra(era) {
   return { from, to };
 }
 
-export async function openAlexSearch({ searchStr, era, prOnly, page }) {
+export async function openAlexSearch({ searchStr, era, prOnly, page, discipline }) {
   const filters = [];
 
   const range = parseEra(era);
@@ -30,10 +32,11 @@ export async function openAlexSearch({ searchStr, era, prOnly, page }) {
     filters.push(`from_publication_date:${range.from}-01-01`);
     filters.push(`to_publication_date:${range.to}-12-31`);
   }
-  if (prOnly === true || prOnly === "true") {
-    filters.push("type:article");   // approximate: see note below
+  if (prOnly === true) {
+    filters.push("type:article"); 
   }
-
+  const fieldId = disciplines[discipline]
+  if (fieldId) filters.push(`topics.field.id:${fieldId}`)
   const params = new URLSearchParams({
     search: searchStr.trim(),
     per_page: "20",

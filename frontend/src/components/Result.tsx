@@ -12,7 +12,8 @@ export interface ResultObject {
   snippet: string, 
   authors: string[], 
   summary: string, 
-  citedBy?: number, 
+  citedBy?: number,
+  doi?: string, 
   date: {
     date: string | null,
     yearStart: number | null,

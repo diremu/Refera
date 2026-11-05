@@ -5,6 +5,7 @@ const DEFAULT_TTL = 24 * 60 * 60 * 1000; // 24 hours
 export function makeKey(source, form) {
   return JSON.stringify([
     source,
+    // regex to remover whitespace within the query and lowercase it
     form.searchStr.trim().toLowerCase().replace(/\s+/g, " "),
     form.era ?? "All",
     form.prOnly === true || form.prOnly === "true",
