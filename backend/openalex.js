@@ -1,11 +1,13 @@
-import {disciplines} from './disciplines.js'
+import { disciplines } from "./disciplines.js";
+
+const pad = (y) => String(y).padStart(4, "0");
 
 function rebuildAbstract(index) {
   if (!index) return "";
   const words = [];
   for (const [word, positions] of Object.entries(index)) {
     for (const p of positions) words[p] = word;
-   }
+  }
   return words.filter(Boolean).join(" ");
 }
 
@@ -15,36 +17,60 @@ function truncate(text, max = 300) {
 }
 
 // "2010-2019" -> { from: 2010, to: 2019 }, "2020-date" -> { from: 2020, to: <this year> }
-function parseEra(era) {
-  if (!era || era === "All") return null;
-  const [start, end] = era.split("-");
-  const from = Number(start);
-  const to = end === "date" ? new Date().getFullYear() : Number(end);
-  if (!Number.isInteger(from) || !Number.isInteger(to) || from > to) return null;
+function parseEra(eraObject) {
+  if (!eraObject) return null;
+  const now = new Date().getFullYear();
+  const from = Number.isInteger(eraObject.yearStart)
+    ? eraObject.yearStart
+    : null;
+  const to = Number.isInteger(eraObject.yearEnd)
+    ? Math.min(eraObject.yearEnd, now)
+    : from !== null
+      ? now
+      : null; // an open end means "up to this year"
+
+  if (from === null && to === null) return null; // "All Eras"
+  if (from !== null && to !== null && from > to) return { from: to, to: from };
   return { from, to };
 }
 
-export async function openAlexSearch({ searchStr, era, prOnly, page, discipline }) {
+export async function openAlexSearch({
+  searchStr,
+  eraObject,
+  prOnly,
+  page,
+  discipline,
+}) {
   const filters = [];
 
-  const range = parseEra(era);
-  if (range) {
-    filters.push(`from_publication_date:${range.from}-01-01`);
-    filters.push(`to_publication_date:${range.to}-12-31`);
-  }
-  if (prOnly === true) {
-    filters.push("type:article"); 
-  }
-  const fieldId = disciplines[discipline]
-  if (fieldId) filters.push(`topics.field.id:${fieldId}`)
+  const range = parseEra(eraObject);
+  if (range?.from != null)
+    filters.push(`from_publication_date:${pad(range.from)}-01-01`);
+  if (range?.to != null)
+    filters.push(`to_publication_date:${pad(range.to)}-12-31`);
+
+  if (prOnly === true) filters.push("type:article");
+
+  const fieldId = Object.hasOwn(disciplines, discipline)
+    ? disciplines[discipline]
+    : undefined;
+  if (Number.isInteger(fieldId)) filters.push(`topics.field.id:${fieldId}`)
   const params = new URLSearchParams({
     search: searchStr.trim(),
     per_page: "20",
     page: String(page ?? 1),
     select: [
-      "id", "doi", "title", "display_name", "authorships",
-      "publication_year", "publication_date", "cited_by_count",
-      "abstract_inverted_index", "primary_location", "type",
+      "id",
+      "doi",
+      "title",
+      "display_name",
+      "authorships",
+      "publication_year",
+      "publication_date",
+      "cited_by_count",
+      "abstract_inverted_index",
+      "primary_location",
+      "type",
     ].join(","),
     api_key: process.env.OPENALEX_KEY,
   });

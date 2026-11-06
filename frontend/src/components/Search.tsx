@@ -1,12 +1,12 @@
 import { IoSearchOutline } from "react-icons/io5";
 import { FaArrowRight } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Result, ResultObject } from "./Result";
 import { FaSpinner } from "react-icons/fa6";
-import RangeYearSlider from './RangeYearSlider'
+import RangeYearSlider from "./RangeYearSlider";
 
-const currentYear = new Date().getFullYear()
-const minYear = 1500
+const currentYear = new Date().getFullYear();
+const minYear = 1500;
 
 function Search() {
   const [searchStr, setSearchStr] = useState<string>("");
@@ -19,31 +19,58 @@ function Search() {
   );
   const [searchResults, setSearchResults] = useState<ResultObject[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [range, setRange] = useState<[number, number]>([minYear, currentYear])
-  const [allEras, setAllEras] = useState<boolean>(true)
-  const [eraOpen, setEraOpen] = useState<boolean>(false)
+  const [range, setRange] = useState<[number, number]>([minYear, currentYear]);
+  const [allEras, setAllEras] = useState<boolean>(true);
+  const [eraOpen, setEraOpen] = useState<boolean>(false);
+  const [disciplines, setDisciplines] = useState<string[]>([]);
 
-  const era = allEras
-  ? "All"
-  : range[1] === currentYear
-    ? `${range[0]}-date`
-    : `${range[0]}-${range[1]}`;
+  useEffect(() => {
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const disciplines = await fetch("http://localhost:3000/disciplines");
+        setDisciplines(await disciplines.json());
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          setError(err instanceof Error ? err.message : "Something went wrong");
+          setDisciplines([]);
+        }
+      }
+    })();
+
+    return controller.abort();
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
-
+    const eraObject = {
+      yearStart: allEras ? null : range[0],
+      yearEnd: allEras
+        ? null
+        : range[1] >= currentYear
+          ? currentYear
+          : range[1],
+    };
     try {
       const res = await fetch(`http://localhost:3000/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ searchStr, prOnly, era, discipline, source }),
+        body: JSON.stringify({
+          searchStr,
+          prOnly,
+          eraObject,
+          discipline,
+          source,
+        }),
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? `Request failed with a status code of ${res.status}`)
-      };
+        const body = await res.json().catch(() => ({}));
+        throw new Error(
+          body.error ?? `Request failed with a status code of ${res.status}`,
+        );
+      }
 
       const data = await res.json();
       const list = data.results ?? [];
@@ -62,7 +89,6 @@ function Search() {
       setLoading(false);
     }
   }
-
 
   return (
     <div>
@@ -88,41 +114,45 @@ function Search() {
         </div>
         <div className="flex justify-around w-[80vw] max-w-175 flex-wrap gap-2 md:gap-0 mx-auto font-grotesk">
           <div className="relative mt-4">
-  <button
-    type="button"   // important: buttons inside a form submit it by default
-    onClick={() => setEraOpen((o) => !o)}
-    className="bg-white px-4 py-1 rounded-3xl border-gray-300 border"
-  >
-    <span className="text-gray-400 mr-2">Era:</span>
-    {allEras ? "All eras" : `${range[0]} – ${range[1] === currentYear ? "Now" : range[1]}`}
-  </button>
+            <button
+              type="button" // important: buttons inside a form submit it by default
+              onClick={() => setEraOpen((o) => !o)}
+              className="bg-white px-4 py-1 rounded-3xl border-gray-300 border"
+            >
+              <span className="text-gray-400 mr-2">Era:</span>
+              {allEras
+                ? "All eras"
+                : `${range[0]} – ${range[1] === currentYear ? "Now" : range[1]}`}
+            </button>
 
-  {eraOpen && (
-    <div className="absolute left-1/2 top-11 z-20 w-64 -translate-x-1/2 rounded-xl border border-gray-200 bg-white shadow-md">
-      <RangeYearSlider
-        min={minYear}
-        max={currentYear}
-        value={range}
-        onChange={(v) => {
-          setRange(v);
-          setAllEras(false);
-        }}
-      />
-      <div className="mt-3 flex min-h-10 items-center justify-center rounded-b-xl bg-[#f8f9ff]">
-        <input
-          type="checkbox"
-          id="allEra"
-          checked={allEras}
-          onChange={(e) => {
-            setAllEras(e.target.checked)
-            setRange([minYear, currentYear])
-          }}
-        />
-        <label htmlFor="allEra" className="pl-2">All Eras</label>
-      </div>
-    </div>
-  )}
-</div>
+            {eraOpen && (
+              <div className="absolute left-1/2 top-11 z-20 w-64 -translate-x-1/2 rounded-xl border border-gray-200 bg-white shadow-md">
+                <RangeYearSlider
+                  min={minYear}
+                  max={currentYear}
+                  value={range}
+                  onChange={(v) => {
+                    setRange(v);
+                    setAllEras(false);
+                  }}
+                />
+                <div className="mt-3 flex min-h-10 items-center justify-center rounded-b-xl bg-[#f8f9ff]">
+                  <input
+                    type="checkbox"
+                    id="allEra"
+                    checked={allEras}
+                    onChange={(e) => {
+                      setAllEras(e.target.checked);
+                      setRange([minYear, currentYear]);
+                    }}
+                  />
+                  <label htmlFor="allEra" className="pl-2">
+                    All Eras
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
             <input
               type="checkbox"
@@ -147,10 +177,9 @@ function Search() {
               className="focus:border-none options"
               onChange={(e) => setDiscipline(e.target.value)}
             >
-              <option>All</option>
-              <option>Computer Science</option>
-              <option>Medicine</option>
-              <option>Law</option>
+              {disciplines.map((d) => (
+                <option key={d}>{d}</option>
+              ))}
             </select>
           </div>
           <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
@@ -177,7 +206,7 @@ function Search() {
           className="flex justify-between md:w-200 md:max-w-[70vw] w-[90vw] mx-auto font-grotesk mt-6 mb-4 border-b border-b-gray-200"
         >
           <p className="text-wrap">
-            {searchResults.length} findings found across{" "}
+            {searchResults.length} materials found across{" "}
             {source == "All" ? "all sources" : `the  ${source}`}
           </p>
           <span>
@@ -202,7 +231,7 @@ function Search() {
         </div>
         <div id="results" className="flex flex-col gap-4 mb-4 items-center">
           {loading ? <FaSpinner className="text-2xl animate-spin" /> : null}
-          {}
+          {error && <p className="text-red-500">{error}</p>}
           {searchResults
             ? searchResults.map((re: ResultObject, index: number) => (
                 <Result key={index} {...re} />

@@ -6,6 +6,7 @@ import bodleianSearch from './bodleian.js'
 import {openAlexSearch} from './openalex.js'
 import { makeKey, cached } from './cache.js'
 import rateLimit from 'express-rate-limit'
+import {disciplines} from './disciplines.js'
 
 const searchLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -37,6 +38,9 @@ const adapters = {
   "Bodleian Library": bodleianSearch,
   "OpenAlex": openAlexSearch,
 };
+
+app.get("/disciplines", (req, res) => res.json(["All", ...Object.keys(disciplines)]));
+
 app.post('/search', searchLimiter, async (req, res) => {
   const form = req.body
 

@@ -10,6 +10,7 @@ export function makeKey(source, form) {
     form.era ?? "All",
     form.prOnly === true || form.prOnly === "true",
     form.page ?? 1,
+    form.discipline ?? 'All'
   ]);
 }
 

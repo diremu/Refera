@@ -41,10 +41,11 @@ export function parseBodleianDate(raw) {
 
 async function bodleianSearch(formData) {
   let searchStr = new URLSearchParams({ q: formData.searchStr.trim() });
-  let era = formData.era
+  let eraObject = formData.eraObject
   let queryString = `${process.env.BODLEIAN_API}/search/?${searchStr}`
-  if (era && era !== 'All') {
-    let [startYear, endYear] = era.split('-')
+  if (eraObject.yearStart !== null && eraObject.yearEnd !== null) {
+    let startYear = eraObject.yearStart == null ? '*' : eraObject.yearStart
+    let endYear = eraObject.yearEnd == null ? new Date().getFullYear() : eraObject.yearEnd
     queryString += `&fq=date:[${startYear} TO ${endYear === 'date' ? new Date().getFullYear() : endYear}]`
     console.log(queryString)
   }

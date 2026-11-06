@@ -17,9 +17,9 @@ function extractYear(summary) {
   return null;
 }
 
-export async function googleSearch({ searchStr, era, discipline, prOnly }) {
+export async function googleSearch({ searchStr, eraObject, discipline, prOnly }) {
   let data;
-  if (era && era !== "All") {
+  if (eraObject.yearStart !== null && eraObject.yearEnd !== null) {
     data = await getJson({
       engine: "google_scholar",
       q: searchStr.trim(),
@@ -32,8 +32,8 @@ export async function googleSearch({ searchStr, era, discipline, prOnly }) {
       q:searchStr.trim(),
       hl: 'en',
       api_key: process.env.SERPAPI_KEY,
-      as_ylo:era.split('-')[0],
-      as_yhi:era.split('-')[1],
+      as_ylo: eraObject.yearStart,
+      as_yhi: eraObject.yearEnd,
     })
   }
 
