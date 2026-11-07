@@ -1,9 +1,10 @@
 import { IoSearchOutline } from "react-icons/io5";
 import { FaArrowRight } from "react-icons/fa";
-import { useState, useEffect } from "react";
-import { Result, ResultObject } from "./Result";
-import { FaSpinner } from "react-icons/fa6";
 import RangeYearSlider from "./RangeYearSlider";
+import { FaSpinner } from "react-icons/fa6";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { Result, ResultObject } from "./Result";
+import { useDismiss } from "../hooks/useDismiss";
 
 const currentYear = new Date().getFullYear();
 const minYear = 1500;
@@ -23,23 +24,10 @@ function Search() {
   const [allEras, setAllEras] = useState<boolean>(true);
   const [eraOpen, setEraOpen] = useState<boolean>(false);
   const [disciplines, setDisciplines] = useState<string[]>([]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const disciplines = await fetch("http://localhost:3000/disciplines");
-        setDisciplines(await disciplines.json());
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          setError(err instanceof Error ? err.message : "Something went wrong");
-          setDisciplines([]);
-        }
-      }
-    })();
-
-    return controller.abort();
-  }, []);
+  const [singleYear, setSingleYear] = useState<boolean>(false);
+  const eraRef = useRef<HTMLDivElement>(null);
+  const closeEra = useCallback(() => setEraOpen(false), []);
+  useDismiss(eraRef, eraOpen, closeEra);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -90,6 +78,31 @@ function Search() {
     }
   }
 
+  useEffect(() => {
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const disciplines = await fetch("http://localhost:3000/disciplines");
+        setDisciplines(await disciplines.json());
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          setError(err instanceof Error ? err.message : "Something went wrong");
+          setDisciplines([]);
+        }
+      }
+    })();
+
+    return controller.abort();
+  }, []);
+
+  const resultsList = useMemo(
+    () =>
+      searchResults.map((re) => (
+        <Result key={`${re.source}-${re.id}`} {...re} />
+      )),
+    [searchResults],
+  );
+
   return (
     <div>
       <form
@@ -113,16 +126,20 @@ function Search() {
           </button>
         </div>
         <div className="flex justify-around w-[80vw] max-w-175 flex-wrap gap-2 md:gap-0 mx-auto font-grotesk">
-          <div className="relative mt-4">
+          <div ref={eraRef} className="relative mt-4">
             <button
-              type="button" // important: buttons inside a form submit it by default
+              type="button"
+              aria-haspopup="true"
+              aria-expanded={eraOpen}
               onClick={() => setEraOpen((o) => !o)}
               className="bg-white px-4 py-1 rounded-3xl border-gray-300 border"
             >
               <span className="text-gray-400 mr-2">Era:</span>
               {allEras
                 ? "All eras"
-                : `${range[0]} – ${range[1] === currentYear ? "Now" : range[1]}`}
+                : singleYear
+                  ? range[0]
+                  : `${range[0]} - ${range[1] === currentYear ? "Now" : range[1]}`}
             </button>
 
             {eraOpen && (
@@ -130,6 +147,7 @@ function Search() {
                 <RangeYearSlider
                   min={minYear}
                   max={currentYear}
+                  singleYear={singleYear}
                   value={range}
                   onChange={(v) => {
                     setRange(v);
@@ -144,11 +162,23 @@ function Search() {
                     onChange={(e) => {
                       setAllEras(e.target.checked);
                       setRange([minYear, currentYear]);
+                      setSingleYear(false);
                     }}
                   />
                   <label htmlFor="allEra" className="pl-2">
                     All Eras
                   </label>
+                  <input
+                    type="checkbox"
+                    id="singleYear"
+                    className="pl-2"
+                    checked={singleYear}
+                    onClick={() => {
+                      setSingleYear(!singleYear);
+                      setAllEras(false);
+                    }}
+                  />
+                  <label htmlFor="singleYear">Single Year</label>
                 </div>
               </div>
             )}
@@ -232,11 +262,7 @@ function Search() {
         <div id="results" className="flex flex-col gap-4 mb-4 items-center">
           {loading ? <FaSpinner className="text-2xl animate-spin" /> : null}
           {error && <p className="text-red-500">{error}</p>}
-          {searchResults
-            ? searchResults.map((re: ResultObject, index: number) => (
-                <Result key={index} {...re} />
-              ))
-            : null}
+          {resultsList ?? null}
         </div>
         <div
           id="pagination"
