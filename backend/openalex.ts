@@ -1,8 +1,9 @@
-import { disciplines } from "./disciplines.js";
+import { disciplines } from "./disciplines.ts";
+import type { Result, SearchForm, EraObject, OpenAlexResult } from "./types.js";
 
-const pad = (y) => String(y).padStart(4, "0");
+const pad = (y: number) => String(y).padStart(4, "0");
 
-function rebuildAbstract(index) {
+function rebuildAbstract(index: Record<string, number[]> | null): string {
   if (!index) return "";
   const words = [];
   for (const [word, positions] of Object.entries(index)) {
@@ -11,23 +12,26 @@ function rebuildAbstract(index) {
   return words.filter(Boolean).join(" ");
 }
 
-function truncate(text, max = 300) {
+function truncate(text: string, max = 300): string {
   if (text.length <= max) return text;
   return text.slice(0, max).replace(/\s+\S*$/, "") + "…";
 }
 
 // "2010-2019" -> { from: 2010, to: 2019 }, "2020-date" -> { from: 2020, to: <this year> }
-function parseEra(eraObject) {
+function parseEra(
+  eraObject: EraObject,
+): { from: number | null; to: number | null } | null {
   if (!eraObject) return null;
   const now = new Date().getFullYear();
   const from = Number.isInteger(eraObject.yearStart)
     ? eraObject.yearStart
     : null;
-  const to = Number.isInteger(eraObject.yearEnd)
-    ? Math.min(eraObject.yearEnd, now)
-    : from !== null
-      ? now
-      : null; // an open end means "up to this year"
+  const to =
+    eraObject.yearEnd !== null && typeof eraObject.yearEnd === "number"
+      ? Math.min(eraObject.yearEnd, now)
+      : from !== null
+        ? now
+        : null; // an open end means "up to this year"
 
   if (from === null && to === null) return null; // "All Eras"
   if (from !== null && to !== null && from > to) return { from: to, to: from };
@@ -37,11 +41,11 @@ function parseEra(eraObject) {
 export async function openAlexSearch({
   searchStr,
   eraObject,
-  prOnly,
+  arOnly,
   page,
   discipline,
-}) {
-  const filters = [];
+}: SearchForm): Promise<Result[]> {
+  const filters: string[] = [];
 
   const range = parseEra(eraObject);
   if (range?.from != null)
@@ -49,12 +53,20 @@ export async function openAlexSearch({
   if (range?.to != null)
     filters.push(`to_publication_date:${pad(range.to)}-12-31`);
 
-  if (prOnly === true) filters.push("type:article");
+  if (arOnly === true) filters.push("type:article");
 
   const fieldId = Object.hasOwn(disciplines, discipline)
     ? disciplines[discipline]
     : undefined;
-  if (Number.isInteger(fieldId)) filters.push(`topics.field.id:${fieldId}`)
+  if (Number.isInteger(fieldId)) filters.push(`topics.field.id:${fieldId}`);
+  function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`${name} is not set`);
+    return value;
+  }
+
+  // inside openAlexSearch, before `new URLSearchParams(...)`:
+  const apiKey = requireEnv("OPENALEX_KEY");
   const params = new URLSearchParams({
     search: searchStr.trim(),
     per_page: "20",
@@ -72,7 +84,7 @@ export async function openAlexSearch({
       "primary_location",
       "type",
     ].join(","),
-    api_key: process.env.OPENALEX_KEY,
+    api_key: apiKey,
   });
   if (filters.length) params.set("filter", filters.join(","));
 
@@ -84,12 +96,11 @@ export async function openAlexSearch({
   }
 
   const data = await res.json();
-
-  return (data.results ?? []).map((re) => {
+  return (data.results ?? []).map((re: OpenAlexResult) => {
     const year = re.publication_year ?? null;
     const venue = re.primary_location?.source?.display_name;
     const authors = (re.authorships ?? [])
-      .map((a) => a.author?.display_name ?? a.raw_author_name)
+      .map((a: any) => a.author?.display_name ?? a.raw_author_name)
       .filter(Boolean);
     const byline = authors.slice(0, 3).join(", ");
     const where = [venue, year].filter(Boolean).join(", ");
@@ -103,11 +114,13 @@ export async function openAlexSearch({
       authors,
       summary: [byline, where].filter(Boolean).join(" - "),
       citedBy: re.cited_by_count ?? 0,
-      date: re.publication_date ?? (year ? String(year) : null),
-      yearStart: year,
-      yearEnd: year,
-      approximate: false,
-      doi: re.doi?.replace("https://doi.org/", "") ?? null,
+      date: {
+        date: re.publication_date ?? (year ? String(year) : null),
+        yearStart: year,
+        yearEnd: year,
+        approximate: false,
+      },
+      doi: re.doi?.replace("https://doi.org/", "") ?? undefined,
       type: re.type,
     };
   });

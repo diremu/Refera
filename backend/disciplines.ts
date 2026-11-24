@@ -1,4 +1,4 @@
-export const disciplines = {
+export const disciplines: Record<string, number> = {
   "Social Sciences": 33,
   "Physics and Astronomy": 31,
   "Medicine": 27,

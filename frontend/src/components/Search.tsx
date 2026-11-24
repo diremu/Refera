@@ -11,7 +11,7 @@ const minYear = 1500;
 
 function Search() {
   const [searchStr, setSearchStr] = useState<string>("");
-  const [prOnly, setPrOnly] = useState<boolean>(false);
+  const [arOnly, setArOnly] = useState<boolean>(false);
   const [discipline, setDiscipline] = useState<string>("All");
   const [source, setSource] = useState<string>("All");
   const [error, setError] = useState<string>("");
@@ -28,6 +28,13 @@ function Search() {
   const eraRef = useRef<HTMLDivElement>(null);
   const closeEra = useCallback(() => setEraOpen(false), []);
   useDismiss(eraRef, eraOpen, closeEra);
+
+  const sorted = useMemo(() => {
+  const list = [...searchResults];                 // never mutate state
+  if (sortBy === "citations") list.sort((a, b) => (b.citedBy ?? 0) - (a.citedBy ?? 0));
+  if (sortBy === "recency") list.sort((a, b) => (b.date.yearStart ?? 0) - (a.date.yearStart ?? 0));
+  return list;                                     // "relevance" keeps the server's order
+  }, [searchResults, sortBy]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,7 +54,7 @@ function Search() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           searchStr,
-          prOnly,
+          arOnly,
           eraObject,
           discipline,
           source,
@@ -97,10 +104,10 @@ function Search() {
 
   const resultsList = useMemo(
     () =>
-      searchResults.map((re) => (
+      sorted.map((re) => (
         <Result key={`${re.source}-${re.id}`} {...re} />
       )),
-    [searchResults],
+    [sorted],
   );
 
   return (
@@ -189,12 +196,13 @@ function Search() {
               id="peer-review"
               className="text-black bg-black"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setPrOnly(e.target.checked);
+                setArOnly(e.target.checked);
               }}
+              checked={arOnly}
             />
             {/* checkbox 'currently bugged and not storing properly */}
             <label htmlFor="peer-review" className="pl-2">
-              Peer Reviewed Only
+              Articles Only
             </label>
           </div>
           <div className="bg-white px-4 py-1 rounded-3xl border-gray-300 border mt-4">
@@ -264,7 +272,7 @@ function Search() {
           {error && <p className="text-red-500">{error}</p>}
           {resultsList ?? null}
         </div>
-        <div
+        {/* <div
           id="pagination"
           className="flex justify-between align-center md:w-200 md:max-w-[70vw] w-[90vw] mx-auto font-grotesk text-gray-500 text-xs mt-2 mb-6"
         >
@@ -293,7 +301,7 @@ function Search() {
               Next
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

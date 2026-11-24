@@ -1,12 +1,12 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import { googleSearch } from './google.js'
-import bodleianSearch from './bodleian.js'
-import {openAlexSearch} from './openalex.js'
+import { googleSearch } from './google.ts'
+import bodleianSearch from './bodleian.ts'
+import {openAlexSearch} from './openalex.ts'
 import { makeKey, cached } from './cache.js'
 import rateLimit from 'express-rate-limit'
-import {disciplines} from './disciplines.js'
+import {disciplines} from './disciplines.ts'
 
 const searchLimiter = rateLimit({
   windowMs: 60 * 1000,

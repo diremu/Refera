@@ -8,9 +8,10 @@ export function makeKey(source, form) {
     // regex to remover whitespace within the query and lowercase it
     form.searchStr.trim().toLowerCase().replace(/\s+/g, " "),
     form.era ?? "All",
-    form.prOnly === true || form.prOnly === "true",
+    form.arOnly === true,
     form.page ?? 1,
-    form.discipline ?? 'All'
+    form.discipline ?? 'All',
+    
   ]);
 }
 
