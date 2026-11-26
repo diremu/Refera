@@ -11,7 +11,7 @@ export interface SearchForm {
   arOnly: boolean;
   discipline: string;
   source: SourceName | "All";
-  page?: number;
+  page: number;
 }
 
 export interface Result {
@@ -59,4 +59,32 @@ export interface OpenAlexResult {
         }
     } | null;
     type: string | null
+}
+
+export interface SerpOrganicResult {
+  result_id: string;
+  title: string;
+  link?: string;
+  snippet?: string;
+  publication_info?: {
+    summary?: string;
+    authors?: { name: string }[];
+  };
+  inline_links?: { cited_by?: { total?: number } };
+}
+
+export interface BodleianMember {
+  id: string;
+  shelfmark?: string;
+  displayFields?: {
+    title?: string[];
+    snippet?: string[];
+    people?: (string | null)[];
+    dateStatement?: string[];
+  };
+}
+
+export interface BodleianResponse {
+  totalItems?: number;
+  member?: BodleianMember[];
 }

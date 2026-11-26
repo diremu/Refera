@@ -12,7 +12,7 @@ export interface ResultObject {
   snippet: string, 
   authors: string[], 
   summary: string, 
-  citedBy?: number,
+  citedBy: number,
   doi?: string, 
   date: {
     date: string | null,
@@ -57,6 +57,9 @@ function Result(data: ResultObject) {
           <a className="flex items-center gap-2 hover:text-black transition duration-300" href={`${data.url}`} target='_blank'>
             View (p.148) <FaArrowRight className="hidden md:block"/>
           </a>
+        </div>
+        <div>
+          <p className="text-sm text-gray-500">{data.citedBy ?? 0} citations</p>
         </div>
       </div>
     </div>

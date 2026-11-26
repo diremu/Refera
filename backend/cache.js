@@ -1,17 +1,15 @@
 const store = new Map();
 const MAX_ENTRIES = 500;
-const DEFAULT_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const DEFAULT_TTL = 24 * 60 * 60 * 1000;
 
 export function makeKey(source, form) {
   return JSON.stringify([
     source,
-    // regex to remover whitespace within the query and lowercase it
     form.searchStr.trim().toLowerCase().replace(/\s+/g, " "),
-    form.era ?? "All",
+    form.eraObject,
     form.arOnly === true,
     form.page ?? 1,
     form.discipline ?? 'All',
-    
   ]);
 }
 

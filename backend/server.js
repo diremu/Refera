@@ -65,7 +65,7 @@ app.post('/search', searchLimiter, async (req, res) => {
     .filter(Boolean)
 
   if (results.length === 0 && errors.length > 0) {
-    return res.status(502).json({ error: 'All sources failed', errors })
+    return res.status(502).json( errors.length === 1 ? { error: `${errors[0].message}`, errors } : { error: 'All sources failed', errors })
   }
 
   res.json({ results, errors })

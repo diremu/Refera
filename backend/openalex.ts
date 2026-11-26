@@ -1,4 +1,5 @@
 import { disciplines } from "./disciplines.ts";
+import { requireEnv, toParams, PAGE_SIZE, safePage } from "./shared.ts";
 import type { Result, SearchForm, EraObject, OpenAlexResult } from "./types.js";
 
 const pad = (y: number) => String(y).padStart(4, "0");
@@ -17,7 +18,6 @@ function truncate(text: string, max = 300): string {
   return text.slice(0, max).replace(/\s+\S*$/, "") + "…";
 }
 
-// "2010-2019" -> { from: 2010, to: 2019 }, "2020-date" -> { from: 2020, to: <this year> }
 function parseEra(
   eraObject: EraObject,
 ): { from: number | null; to: number | null } | null {
@@ -59,18 +59,11 @@ export async function openAlexSearch({
     ? disciplines[discipline]
     : undefined;
   if (Number.isInteger(fieldId)) filters.push(`topics.field.id:${fieldId}`);
-  function requireEnv(name: string): string {
-    const value = process.env[name];
-    if (!value) throw new Error(`${name} is not set`);
-    return value;
-  }
-
-  // inside openAlexSearch, before `new URLSearchParams(...)`:
   const apiKey = requireEnv("OPENALEX_KEY");
-  const params = new URLSearchParams({
+  const params = toParams({
     search: searchStr.trim(),
-    per_page: "20",
-    page: String(page ?? 1),
+    per_page: PAGE_SIZE,
+    page: safePage(page),
     select: [
       "id",
       "doi",
@@ -87,7 +80,6 @@ export async function openAlexSearch({
     api_key: apiKey,
   });
   if (filters.length) params.set("filter", filters.join(","));
-
   const res = await fetch(`${process.env.OPENALEX_API}/works?${params}`, {
     signal: AbortSignal.timeout(10000),
   });

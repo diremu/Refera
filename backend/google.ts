@@ -1,17 +1,6 @@
 import { getJson } from "serpapi";
-import type { Result, SearchForm } from "./types.js";
-
-interface SerpOrganicResult {
-  result_id: string;
-  title: string;
-  link?: string;
-  snippet?: string;
-  publication_info?: {
-    summary?: string;
-    authors?: { name: string }[];
-  };
-  inline_links?: { cited_by?: { total?: number } };
-}
+import { requireEnv, PAGE_SIZE, safePage } from "./shared.ts";
+import type { Result, SearchForm, SerpOrganicResult } from "./types.js";
 
 function extractYear(summary: string | null | undefined): number | null {
   if (!summary) return null;
@@ -33,28 +22,32 @@ export async function googleSearch({
   eraObject,
   discipline,
   arOnly,
+  page,
 }: SearchForm): Promise<Result[]> {
-  const apiKey = process.env.SERPAPI_KEY;
-  if (!apiKey) throw new Error("SERPAPI_KEY is not set");
-
+  const apiKey = requireEnv("SERPAPI_KEY");
+  if (apiKey === "") throw new Error("SERPAPI_KEY is not set");
+  const currentPage = safePage(page);
   const q = [
     searchStr.trim(),
     discipline && discipline !== "All" ? discipline : null,
-    arOnly ? " articles" : null,
+    arOnly ? "articles" : null,
   ]
     .filter(Boolean)
     .join(" ");
-
-  const data = await getJson({
-    engine: "google_scholar",
-    q,
-    hl: "en",
-    api_key: apiKey,
-    ...(eraObject.yearStart !== null ? { as_ylo: eraObject.yearStart } : {}),
-    ...(eraObject.yearEnd !== null ? { as_yhi: eraObject.yearEnd } : {}),
-  });
-
-  const organic: SerpOrganicResult[] = data.organic_results ?? [];
+    const data = await getJson({
+      engine: "google_scholar",
+      q,
+      hl: "en",
+      api_key: apiKey,
+      start: currentPage * 10,
+      num: String(PAGE_SIZE),
+      ...(eraObject.yearStart !== null ? { as_ylo: eraObject.yearStart } : {}),
+      ...(eraObject.yearEnd !== null ? { as_yhi: eraObject.yearEnd } : {}),
+      json_restrictor: "organic_results, search_information",
+      // can also add serpapi_pagination but unsure how to wield it for now
+    });
+    
+    const organic: SerpOrganicResult[] = data.organic_results ?? [];
 
   return organic.map((r): Result => {
     const year = extractYear(r.publication_info?.summary);
@@ -67,7 +60,7 @@ export async function googleSearch({
       snippet: r.snippet ?? "",
       authors: r.publication_info?.authors?.map((a) => a.name) ?? [],
       summary: r.publication_info?.summary,
-      citedBy: r.inline_links?.cited_by?.total,
+      citedBy: r.inline_links?.cited_by?.total ?? 0,
       date: {
         date: year ? String(year) : null,
         yearStart: year,

@@ -11,6 +11,7 @@ const minYear = 1500;
 
 function Search() {
   const [searchStr, setSearchStr] = useState<string>("");
+  const [lastQuery, setLastQuery] = useState<string>("");
   const [arOnly, setArOnly] = useState<boolean>(false);
   const [discipline, setDiscipline] = useState<string>("All");
   const [source, setSource] = useState<string>("All");
@@ -25,20 +26,25 @@ function Search() {
   const [eraOpen, setEraOpen] = useState<boolean>(false);
   const [disciplines, setDisciplines] = useState<string[]>([]);
   const [singleYear, setSingleYear] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
   const eraRef = useRef<HTMLDivElement>(null);
   const closeEra = useCallback(() => setEraOpen(false), []);
   useDismiss(eraRef, eraOpen, closeEra);
 
   const sorted = useMemo(() => {
-  const list = [...searchResults];                 // never mutate state
+  const list = [...searchResults];
   if (sortBy === "citations") list.sort((a, b) => (b.citedBy ?? 0) - (a.citedBy ?? 0));
   if (sortBy === "recency") list.sort((a, b) => (b.date.yearStart ?? 0) - (a.date.yearStart ?? 0));
-  return list;                                     // "relevance" keeps the server's order
+  return list;
   }, [searchResults, sortBy]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    if (searchStr == lastQuery) {
+      setLoading(false);
+      return;
+    }
     setError("");
     const eraObject = {
       yearStart: allEras ? null : range[0],
@@ -58,6 +64,7 @@ function Search() {
           eraObject,
           discipline,
           source,
+          page,
         }),
       });
       if (!res.ok) {
@@ -82,6 +89,7 @@ function Search() {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
+      setLastQuery(searchStr);
     }
   }
 
@@ -272,11 +280,11 @@ function Search() {
           {error && <p className="text-red-500">{error}</p>}
           {resultsList ?? null}
         </div>
-        {/* <div
+        <div
           id="pagination"
           className="flex justify-between align-center md:w-200 md:max-w-[70vw] w-[90vw] mx-auto font-grotesk text-gray-500 text-xs mt-2 mb-6"
         >
-          <p className="text-wrap text-xs">Showing 1-5 of 85 results</p>
+          <p className="text-wrap text-xs">{searchResults.length == 0 ? "No results yet" : `Page ${page} of ${searchResults.length} results`}</p>
           <div className="flex gap-2">
             <button
               disabled
@@ -301,7 +309,7 @@ function Search() {
               Next
             </button>
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );

@@ -1,29 +1,7 @@
-import type { Result } from "./types.js";
-import type { SearchForm } from "./types.js";
+import type { Result, SearchForm, BodleianResponse } from "./types.js";
+import { requireEnv, toParams, PAGE_SIZE, safePage } from "./shared.ts";
 
 type DateInfo = Result["date"];
-
-interface BodleianMember {
-  id: string;
-  shelfmark?: string;
-  displayFields?: {
-    title?: string[];
-    snippet?: string[];
-    people?: (string | null)[];
-    dateStatement?: string[];
-  };
-}
-
-interface BodleianResponse {
-  totalItems?: number;
-  member?: BodleianMember[];
-}
-
-  function requireEnv(name: string): string {
-    const value = process.env[name];
-    if (!value) throw new Error(`${name} is not set`);
-    return value;
-  }
 
 const MAX_YEAR = new Date().getFullYear() + 1;
 
@@ -36,7 +14,10 @@ const stripTags = (s: string | null | undefined): string | null =>
 export function parseBodleianDate(
   raw: string | string[] | null | undefined,
 ): DateInfo {
-  const text = ([] as string[]).concat(raw ?? []).join("; ").trim();
+  const text = ([] as string[])
+    .concat(raw ?? [])
+    .join("; ")
+    .trim();
   const empty: DateInfo = {
     date: null,
     yearStart: null,
@@ -90,17 +71,26 @@ export default async function bodleianSearch({
   page,
 }: SearchForm): Promise<Result[]> {
   const baseUrl = requireEnv("BODLEIAN_API");
-  const params = new URLSearchParams({ q: searchStr.trim() });
 
-  // the request body is untrusted, so tolerate a missing era object
-  const { yearStart, yearEnd } = eraObject ?? { yearStart: null, yearEnd: null };
+  const { yearStart, yearEnd } = eraObject ?? {
+    yearStart: null,
+    yearEnd: null,
+  };
+  let dateFilter: string | undefined;
   if (yearStart !== null || yearEnd !== null) {
     let from: number | "*" = yearStart ?? "*";
     let to = yearEnd ?? new Date().getFullYear();
     if (from !== "*" && from > to) [from, to] = [to, from];
-    params.append("fq", `date:[${from} TO ${to}]`);
+    dateFilter = `date:[${from} TO ${to}]`;
   }
-  if (page && page > 1) params.set("page", String(page));
+
+  const currentPage = safePage(page);
+  const params = toParams({
+    q: searchStr.trim(),
+    fq: dateFilter,
+    page: currentPage > 1 ? currentPage : undefined,
+    rows: String(PAGE_SIZE),
+  });
 
   const res = await fetch(`${baseUrl}/search/?${params}`, {
     headers: { Accept: "application/json" },
